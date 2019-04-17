@@ -12,11 +12,7 @@
     <div id="root"></div>
     <script type="text/babel">
         (() => {
-            const todos = [
-                {id: 0, title: 'Task 0', isDone: false},
-                {id: 1, title: 'Task 1', isDone: false},
-                {id: 2, title: 'Task 2', isDone: true}
-            ];
+            const todos = [];
 
             function TodoItem(props) {
                 return (
@@ -53,15 +49,60 @@
                     </ul>
                 );
             }
+
+            function TodoForm(props) {
+                return (
+                    <form onSubmit={props.addTodo}>
+                        <input type="text" value={props.item} onChange={props.updateItem}/>
+                        <input type="submit" value="Add"/>
+                    </form>
+                );
+            }
+
+            function getUniqueId() {
+                return new Date().getTime().toString(36) + '-' + Math.random().toString(36);
+            }
+
             // Appが呼ばれたらconstructorでthis.stateで決められ
             class App extends React.Component {
                 constructor() {
                     super();
                     this.state = {
-                        todos: todos
+                        todos: todos,
+                        item: ''
                     };
                     this.checkTodo = this.checkTodo.bind(this);
                     this.deleteTodo = this.deleteTodo.bind(this);
+                    this.updateItem = this.updateItem.bind(this);
+                    this.addTodo = this.addTodo.bind(this);
+                }
+
+                addTodo(e) {
+                    // preventDefault 遷移させないようにする
+                    e.preventDefault();
+
+                    // itemをtrimした時に空文字であればreturnとする
+                    if (this.state.item.trim() === '') {
+                        return;
+                    }
+
+                    const item = {
+                        // 被らないようなID
+                        id: getUniqueId(),
+                        title: this.state.item,
+                        isDone: false
+                    };
+                    
+                    // 既存のtodosに追加したい
+                    // 直接変更出来ないのでtodosのcopy
+                    const todos = this.state.todos.slice();
+                    // toodosに対してitemをpush
+                    todos.push(item);
+                    // pushしたtodosにセット
+                    this.setState({
+                        todos: todos,
+                        item: ''
+                    });
                 }
 
                 deleteTodo(todo) {
@@ -93,6 +134,13 @@
                     });
                 }
 
+                updateItem(e) {
+                    this.setState({
+                        // e.target.value formに入力された値
+                        item: e.target.value
+                    });
+                }
+
                 render() {
                     return (
                         <div className="container">
@@ -101,6 +149,11 @@
                                 todos={this.state.todos}
                                 checkTodo={this.checkTodo}
                                 deleteTodo={this.deleteTodo}
+                            />
+                            <TodoForm
+                                item={this.state.item}
+                                updateItem={this.updateItem}
+                                addTodo={this.addTodo}
                             />
                         </div>
                     );
